@@ -49,8 +49,8 @@ def teleoperation():
             except AttributeError:  
                 pass
         try:
-            with Listener(on_press=on_press, on_release=on_release) as listener:
-                listener.join()  
+            listener = Listener(on_press=on_press, on_release=on_release)
+            listener.start()  
         except KeyboardInterrupt:
             pass
         rate.sleep()
