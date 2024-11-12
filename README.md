@@ -40,9 +40,11 @@ This repository hosts the source code for the `turtlesim_coursework` package, wh
 ### Architecture
 
 The `RQT` graph displays the main components:
+![RQT Graph](images/teleop.png)
+
 - **Node**: `teleop`
 - **Topic**: `/turtle1/cmd_vel`
-- **Background Listener Thread**: Runs independently to capture keyboard input.
+
 
 **Functions**:
 - **`on_press(key)`**: Handles key presses for direction and speed control.
@@ -69,3 +71,8 @@ The `RQT` graph displays the main components:
 2. Run the teleoperation node:
    ```bash
    rosrun turtlesim_coursework teleop_with_speed.py
+3. Follow the on-screen instructions in the terminal to control the turtle.
+
+## Future Debugging
+On pressing the Esc key, some terminal commands may still appear, even though the node stops successfully.
+
