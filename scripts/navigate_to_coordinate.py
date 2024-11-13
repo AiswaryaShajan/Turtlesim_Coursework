@@ -13,17 +13,23 @@ def callback(pose):
     rospy.loginfo('the turtle is at %f, %f, %f', pose.x, pose.y, pose.theta)
     twist = Twist()
     rate = rospy.Rate(10)
-
+    print(a,b)
+    print(pose.x)
+    print(pose.y)
     y = pose.y - b
+    print (f'this is y {y}')
     x = pose.x - a
+    print (f'this is x {x}')
     angle_to_target = math.atan2(y, x)
+    print(f'this is the value {angle_to_target}')
+    distance_to_target = math.sqrt((a-pose.x)**2+(b-pose.y)**2)
     if abs(angle_to_target - pose.theta) > 0.1:
         twist.angular.z = 0.1
         pub.publish(twist)
     else: 
+        print('hey the reached theta..almost!')
         twist.angular.z = 0
         pub.publish(twist)
-        distance_to_target = math.sqrt((a-pose.x)**2+(b-pose.y)**2)
         if distance_to_target > 0.1:
             twist.linear.x = 0.5
         else:
@@ -34,11 +40,12 @@ def callback(pose):
     if distance_to_target < 0.1:
         print('Destination arrived.. Aloha!')
         rospy.signal_shutdown()
-
-rospy.SubscribeListener('/turtle1/pose', Pose, callback )
-if __name == '__main__':
+def subscriber():
+    rospy.Subscriber('/turtle1/pose', Pose, callback )
+    rospy.spin()
+if __name__ == '__main__':
     try:
-        callback()
+        subscriber()
     except rospy.ROSInterruptException:
         pass
 
