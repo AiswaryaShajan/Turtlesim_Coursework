@@ -13,23 +13,26 @@ def callback(pose):
     rospy.loginfo('the turtle is at %f, %f, %f', pose.x, pose.y, pose.theta)
     twist = Twist()
     rate = rospy.Rate(10)
-    print(a,b)
-    print(pose.x)
-    print(pose.y)
-    y = pose.y - b
-    print (f'this is y {y}')
-    x = pose.x - a
-    print (f'this is x {x}')
+    print(a,b) # checking if a and b values are changed
+    print(pose.x) #checking if pose.x is updated
+    print(pose.y) #checking if pose.y is updated
+    y = b-pose.y
+    print (f'this is y {y}') #checking if y is updated
+    x = a-pose.x 
+    print (f'this is x {x}') #checking if x is updated
     angle_to_target = math.atan2(y, x)
     print(f'this is the value {angle_to_target}')
     distance_to_target = math.sqrt((a-pose.x)**2+(b-pose.y)**2)
+    print(abs(angle_to_target - pose.theta))
     if abs(angle_to_target - pose.theta) > 0.1:
-        twist.angular.z = 0.1
+        twist.angular.z = 2
         pub.publish(twist)
     else: 
-        print('hey the reached theta..almost!')
+        print('hey the reached theta..almost!') #To check if the else block is executed
         twist.angular.z = 0
         pub.publish(twist)
+        print(f'angular velocity is {twist.angular.z}') #To check if the angular velocity is set to zero.
+    
         if distance_to_target > 0.1:
             twist.linear.x = 0.5
         else:
@@ -54,5 +57,3 @@ if __name__ == '__main__':
         
 
         
-
-
