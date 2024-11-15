@@ -7,6 +7,9 @@ This repository hosts the source code for the `turtlesim_coursework` package, wh
 - **Wall collision avoidance**: Overrides movement to prevent wall collisions.
 - **Vacuum cleaning behavior**: Covers the entire window area efficiently.
 - **Multiple turtles vacuum cleaning behavior**.
+## Prerequisites:
+1. ROS installed and configured.
+2. Python 3 with `rospy`, `geometry_msgs`,`math`, and `pynput` libraries installed.
 
 ## TASK 1: Teleoperation with Adjustable Speed
 
@@ -14,65 +17,136 @@ This repository hosts the source code for the `turtlesim_coursework` package, wh
 
 ### Design
 
-1. **Capturing the Key Presses**:
-   - A listener thread using `pynput` captures keyboard events. When arrow keys are pressed or released, they update the turtle's direction, type, and speed of motion.
+The program mainly consists of a listener and a publisher.
+1.**Listener - Captures the Key Presses**:
+   - The listener runs its own thread in the background to capture keyboard events. It is designed to listen and update the publisher about the turtle's speed and direction.
 
-2. **Publisher Node for Turtle Movement**:
+2. **Publisher Node - Turtle Movement**:
    - The ROS node continuously publishes velocity values from the listener to the `/turtle1/cmd_vel` topic, controlling the turtle's movement.
 
 ### Algorithm
 
 1. **Initialize**:
    - Import necessary dependencies: `pynput` for key press detection and `rospy`/`geometry_msgs` for ROS functionality.
+   - Pynput has classes such as the `Listener`, `Key`, and `KeyCode` that help detect the key pressed by checking the attributes of the key.
 2. **Set Speed Variable**:
    - Define a global `speed` variable to control movement speed, adjustable by keyboard input.
-3. **Keyboard Listeners**:
-   - **`on_press(key)`**: Detects specific key presses:
+3. **Keyboard Listener**: Requires the `on_press(key)` and `on_release(key)` functions which are then defined.
+   - **`on_press(key)`**: Detects specific key presses uses the following keys:
      - **Arrow keys** for movement.
      - **+** and **-** to adjust speed.
      - **Esc** to stop teleoperation and shut down the ROS node.
-   - **`on_release(key)`**: Stops movement by resetting velocities.
+   - **`on_release(key)`**: Stops movement by setting the velocity to zero.
 4. **Continuous Publish**:
    - Run a loop to publish updated `Twist` messages to `/turtle1/cmd_vel` at 10 Hz until the node is stopped.
 5. **Shutdown**:
    - Stop the listener when `Esc` or `Ctrl+C` is pressed.
+6. Implement `try` and `except` blocks for graceful exit.
 
 ### Architecture
 
-The `RQT` graph displays the main components:
+The `RQT` graph is shown below.
 ![RQT Graph](images/teleop.png)
 
 - **Node**: `teleop`
 - **Topic**: `/turtle1/cmd_vel`
-
-
-**Functions**:
+-**Functions**:
 - **`on_press(key)`**: Handles key presses for direction and speed control.
 - **`on_release(key)`**: Stops the turtle when keys are released.
-- **`teleoperation()`**: Initializes the ROS node, keyboard listener, and publishing loop.
-
+- **`teleoperation()`**: Initializes the ROS node, keyboard listener, and publishing loop. It is then called in the 'main' block.
 **Global Variables**:
 - `speed`: Adjusts the linear speed of the turtle, modifiable by `+` and `-` keys.
 
 ### Flow of Information
 
-- **Keyboard Input**: Captured by `pynput` listener.
-- **Velocity Calculation**: Determined by key presses (arrow keys for movement, `+` and `-` for speed adjustment).
-- **Publishing**: Velocity commands are published to `/turtle1/cmd_vel` at a rate of 10 Hz.
+-User presses arrow key→ key captured → twist message updated to a non-zero value (new speed can be seen on the terminal)→ publish twist to `cmd_vel` topic → Turtle moves.
+-User presses `+` or `-`→ key captured → speed incremented (twist message also updated) → publish twist → turtle moves faster or slower.
+-user releases arrow key → key captured → twist set to zero (seen on terminal) → publish twist → turtle stops.
+
 
 ## Running the Project
 
-### Prerequisites:
-1. ROS installed and configured.
-2. Python 3 with `rospy`, `geometry_msgs`, and `pynput` libraries installed.
-
 ### Steps to Run:
 1. Start the ROS master (run `roscore`).
-2. Run the teleoperation node:
+2. Run the turtlesim_node in a new terminal:
+   ```bash
+   rosrun turtlesim turtlesim_node
+3. Run the teleoperation node in a new terminal:
    ```bash
    rosrun turtlesim_coursework teleop_with_speed.py
-3. Follow the on-screen instructions in the terminal to control the turtle.
+3. Follow the on-screen instructions in the terminal to control the turtle. Press `esc` to quit.
 
 ## Future Debugging
-On pressing the Esc key, some terminal commands may still appear, even though the node stops successfully.
+On pressing the Esc key, random terminal commands may appear, even though the node stops successfully.
 
+## TASK 2: Autonomous navigation to a given coordinate
+
+The goal is to create a ROS node that moves the turtle to a user-defined coordinate within the Turtlesim window.
+
+### Design
+
+The program consists of a custom node named `navigation_node` that acts as both subscriber and publisher. It:
+- **Subscribes** to the topic `/turtle1/pose` for receiving the turtle's current position and orientation.
+   - The subscriber 'Callback' plays a key role here. It gets called continously as Pose messages are updated, essentially acting as a 'loop'. 
+   - Since the callback function has access to the `Pose` values, these values are obtained, processed and published in the callback itself.
+- **Publishes** to the topic `/turtle1/cmd_vel` velocity commands to control the turtle's movement.
+
+The program is structured to:
+  - Rotate the turtle to face the target coordinate.
+  - Move it forward until it reaches the destination.
+  - Stop the turtle upon arrival.
+
+
+### Algorithm
+
+1. Initialize the ROS node, publisher, and subscriber.
+2. Prompt the user for the target coordinates `(x, y)`.
+   - The input() function takes the user input as a string, which is split using split() function and then mapped to two separate float values.
+3. Calculate:
+   - The angle to the target (`angle_to_target`) using the `math.atan2` function in python. This returns the angle of the user-coordinate with respect to the x-axis.
+   - The distance to the target (`distance_to_target`) using the formula for Euclidean distance.
+4. Rotate the turtle toward the target:
+   - Use angular velocity commands until the alignment threshold (difference between the angle to target and the current orientation) is met.
+   - Set a flag (`rotation_done`) once the rotation is completed, so that the callback does not repeat the rotation check.
+5. Move the turtle forward:
+   - Use linear velocity commands until the distance threshold is met.
+   - Set a flag (`linear_done`) to remind the callback that the linear movement is to be terminated. Since the callback starts a fresh thread each time, it has no memory of the previous state causing it to recheck. Flags come in handy here.
+6. Stop the turtle and shut down the node.
+
+### Architecture
+
+The `RQT` graph displays the main components:
+![RQT Graph](images/navigate_to_coordinate.png)
+
+- **Input**: User-provided target coordinates `(x, y)`.
+- **Node**: `navigation_node`.
+  - **Publishes**: `/turtle1/cmd_vel` (velocity commands).
+  - **Subscribes**: `/turtle1/pose` (current turtle pose).
+
+
+**Functions**:
+- **`callback(pose)`**: Invoked as a pose message is updated.
+- **`subscriber`**: Called in the 'main' block.
+
+**Global Variables**:
+- `Twist`- for command velocity
+- `rotation_done` and `linear_done` act as state flags.
+
+### Flow of Information
+
+  Input coordinates → Callback invoke on every new pose message → Compute angular alignment and distance using callback and input → Rotation if condition met → Set Flag once rotated → check for Linear motion using condition → Set Flag once moved → Stop.
+
+
+## Running the Project
+
+1. Start the ROS master (run `roscore`).
+2. Run the turtlesim_node in a new terminal:
+   ```bash
+   rosrun turtlesim turtlesim_node
+3. Run the navigation node in a new terminal:
+   ```bash
+   rosrun turtlesim_coursework navigate_to_coordinate.py
+4. Follow the instructions on the terminal.
+
+## Future Debugging
+For some coordinates, the turtle is not able to instantaneously stop and it continues to move. Yet to debug this issue. Let me know if you can help!
