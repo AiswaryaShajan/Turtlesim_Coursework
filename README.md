@@ -17,8 +17,9 @@ This repository hosts the source code for the `turtlesim_coursework` package, wh
 
 ### Design
 
-The program mainly consists of a listener and a publisher.
-1.**Listener - Captures the Key Presses**:
+The program mainly consists of a listener and a publisher.  
+
+1. **Listener - Captures the Key Presses**:
    - The listener runs its own thread in the background to capture keyboard events. It is designed to listen and update the publisher about the turtle's speed and direction.
 
 2. **Publisher Node - Turtle Movement**:
@@ -59,9 +60,9 @@ The `RQT` graph is shown below.
 
 ### Flow of Information
 
--User presses arrow key→ key captured → twist message updated to a non-zero value (new speed can be seen on the terminal)→ publish twist to `cmd_vel` topic → Turtle moves.
--User presses `+` or `-`→ key captured → speed incremented (twist message also updated) → publish twist → turtle moves faster or slower.
--user releases arrow key → key captured → twist set to zero (seen on terminal) → publish twist → turtle stops.
+-User presses arrow key→ key captured → twist message updated to a non-zero value (new speed can be seen on the terminal)→ publish twist to `cmd_vel` topic → Turtle moves.  
+-User presses `+` or `-`→ key captured → speed incremented (twist message also updated) → publish twist → turtle moves faster or slower.  
+-user releases arrow key → key captured → twist set to zero (seen on terminal) → publish twist → turtle stops.  
 
 
 ## Running the Project
