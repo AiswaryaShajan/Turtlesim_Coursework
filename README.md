@@ -1,4 +1,4 @@
-# PDE4430 MOBILE ROBOTICS – COURSEWORK 1
+# PDE4430 MOBILE ROBOTICS – COURSEWORK 1 - ROS TURTLESIM 🐢
 
 This repository hosts the source code for the `turtlesim_coursework` package, which implements five main tasks with the turtle in a ROS Noetic Turtlesim environment:
 
