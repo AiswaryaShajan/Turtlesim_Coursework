@@ -25,9 +25,10 @@ def callback(pose):
     angle_to_target = math.atan2(y, x)
     distance_to_target = math.sqrt((a-pose.x)**2+(b-pose.y)**2)
     angle_difference = abs(angle_to_target - pose.theta)
-    print(distance_to_target)
+    print(angle_difference)
+    print(f'distance_to_target is {distance_to_target}')
     if not rotation_done:
-        if angle_difference > 0.1:
+        if angle_difference > 0.04:
             twist.angular.z = 2
             pub.publish(twist)
         else: 
@@ -39,8 +40,8 @@ def callback(pose):
     else:
         print('rotation done')
         if not linear_done:
-            if distance_to_target > 0.01:
-                twist.linear.x = 0.001
+            if distance_to_target > 0.3:
+                twist.linear.x = 1
                 pub.publish(twist)
             else: 
                 print('Yes we reached')
@@ -49,8 +50,8 @@ def callback(pose):
         else:
             twist.linear.x=0
             pub.publish(twist)
-            print(f'the velocity is {twist.linear.x}')
-            print("Arrived. Where next?")
+            print("Desintation arrived. Aloha!")
+            rospy.signal_shutdown('destination reached')
     
 def subscriber():
     rospy.Subscriber('/turtle1/pose', Pose, callback )
