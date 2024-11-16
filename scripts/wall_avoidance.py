@@ -47,6 +47,7 @@ def listener_node():
             pass    
     try:
         listener = Listener(on_press=on_press, on_release=on_release)
+        listener.start()
     except KeyboardInterrupt:
         pass
     
