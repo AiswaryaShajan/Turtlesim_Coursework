@@ -5,53 +5,82 @@ from turtlesim.msg import Pose
 from pynput.keyboard import Key, Listener, KeyCode
 twist = Twist() # Declaring the global variables so that they can be accessed in any of the functions.
 pose= Pose()
+last_pressed_key= None
 
 def listener_node():
     rospy.init_node('listener_node', anonymous=True)
-    rate=rospy.Rate(10)
+    rate=rospy.Rate(30)
     pub = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
     def callback(data): # data is a local variable. it can only be used inside the callback function.
         global pose
         pose=data   #it has to be stored somewhere so that it can be accessed outside the callback.
-        print(f'pose undated: {pose}')
     rospy.Subscriber('/turtle1/pose', Pose, callback)
     def on_press(key):
         global twist
         global pose
+        global last_pressed_key
+        print(f'new last pressed key:{last_pressed_key}')
         try: 
             print('try block is seen')
             if 1.5 < pose.x < 10 and 1.5 < pose.y < 10:
                 print('turtle is within the bounds')
                 if key.char == 'w':
+                    print('pressed w')
                     twist.linear.x = 2
-                    print('w pressed')
+                    last_pressed_key= 'w'
+                    print(f'last pressed key value set to {last_pressed_key}')
                 elif key.char == 'a':
                     twist.linear.x=0
                     twist.angular.z= 2
+                    last_pressed_key = 'a'
                 elif key.char == 's':
                     twist.angular.z=0
                     twist.linear.x = -2
+                    last_pressed_key = 's'
                 elif key.char == 'd':
                     twist.linear.x =0
                     twist.angular.z= -2
+                    last_pressed_key = 'd'
                 pub.publish(twist)
             else:
-                previous_linear = twist.linear.x
-                if key.char in ['w', 'a','s', 'd']:
-                    print('Freeze! This place is off-limits. You can rotate or go back.')
-                twist.linear.x = 0
-                start_time=rospy.get_time()
-                pub.publish(twist)
-                if (rospy.get_time()-start_time < 0.785):
-                    twist.angular.z= 2
-                    twist.linear.z = -previous_linear
-                    pub.publish(twist)
-                if key.char == 'a':
-                    twist.angular.z= 2
+                print('Oops! you are off-limits!')
+                if last_pressed_key in ['w','a', 'd']:
+                    if key.char == 'w':
+                        twist.linear.x=0
+                        last_pressed_key = 'w'
+                        print('why still pressing w')
+                    elif key.char == 'a':
+                        print('ok so you press a ayee')
+                        last_pressed_key ='a'
+                        twist.angular.z= 2
+                    elif key.char == 's':
+                        print('ok good plan lets retract')
+                        last_pressed_key = 's'
+                        twist.linear.x = -2
+                    elif key.char == 'd':
+                        twist.angular.z= -2
+                        last_pressed_key = 'd'
+                elif last_pressed_key in ['s','a','d']:
+                    if key.char == 'w':
+                        twist.linear.x=2
+                        last_pressed_key = 'w'
+                    elif key.char == 'a':
+                        twist.angular.z=2
+                    elif key.char == 's':
+                        twist.linear.x = 0
+                        print('why you still pressing s?')
+                        last_pressed_key = 's'
+                    elif key.char == 'd':
+                        twist.angular.z= -2
+                elif key.char == 'a':
+                    print('regular a condition works')
+                    last_pressed_key='a'
+                    twist.angular.z = 2
                 elif key.char == 'd':
-                    twist.angular.z= -2
+                    print('regular d condition works')
+                    last_pressed_key = 'd'
+                    twist.angular.z = -2
                 pub.publish(twist)
-
         except AttributeError:
             pass
     def on_release(key):
