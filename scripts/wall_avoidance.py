@@ -2,7 +2,7 @@
 import rospy
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
-from pynput.keyboard import Key, Listener, KeyCode
+from pynput.keyboard import Key, Listener
 twist = Twist() # Declaring the global variables so that they can be accessed in any of the functions.
 pose= Pose()
 last_pressed_key= None
@@ -19,16 +19,11 @@ def listener_node():
         global twist
         global pose
         global last_pressed_key
-        print(f'new last pressed key:{last_pressed_key}')
         try: 
-            print('try block is seen')
-            if 1.5 < pose.x < 10 and 1.5 < pose.y < 10:
-                print('turtle is within the bounds')
+            if 1 < pose.x < 10 and 1< pose.y < 10:
                 if key.char == 'w':
-                    print('pressed w')
                     twist.linear.x = 2
                     last_pressed_key= 'w'
-                    print(f'last pressed key value set to {last_pressed_key}')
                 elif key.char == 'a':
                     twist.linear.x=0
                     twist.angular.z= 2
@@ -48,13 +43,10 @@ def listener_node():
                     if key.char == 'w':
                         twist.linear.x=0
                         last_pressed_key = 'w'
-                        print('why still pressing w')
                     elif key.char == 'a':
-                        print('ok so you press a ayee')
                         last_pressed_key ='a'
                         twist.angular.z= 2
                     elif key.char == 's':
-                        print('ok good plan lets retract')
                         last_pressed_key = 's'
                         twist.linear.x = -2
                     elif key.char == 'd':
@@ -68,16 +60,13 @@ def listener_node():
                         twist.angular.z=2
                     elif key.char == 's':
                         twist.linear.x = 0
-                        print('why you still pressing s?')
                         last_pressed_key = 's'
                     elif key.char == 'd':
                         twist.angular.z= -2
                 elif key.char == 'a':
-                    print('regular a condition works')
                     last_pressed_key='a'
                     twist.angular.z = 2
                 elif key.char == 'd':
-                    print('regular d condition works')
                     last_pressed_key = 'd'
                     twist.angular.z = -2
                 pub.publish(twist)
@@ -96,7 +85,6 @@ def listener_node():
     try:
         listener = Listener(on_press=on_press, on_release=on_release)
         listener.start()
-        print('Listener started.') #Check if listener is working.
     except KeyboardInterrupt:
         pass
     
