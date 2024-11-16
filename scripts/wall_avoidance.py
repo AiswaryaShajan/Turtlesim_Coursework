@@ -51,7 +51,8 @@ def listener_node():
     except KeyboardInterrupt:
         pass
     
-    
+    while not rospy.is_shutdown():
+        rate.sleep()
 
 if __name__== "__main__":
     try:
