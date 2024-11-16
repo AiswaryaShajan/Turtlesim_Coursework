@@ -3,9 +3,9 @@ import rospy
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
 from pynput.keyboard import Key, Listener, KeyCode
-twist=Twist()
+
 def listener_node():
-    global twist
+    twist = Twist()
     pose=Pose()
     rospy.init_node('listener_node', anonymous=True)
     rate=rospy.Rate(10)
@@ -16,49 +16,40 @@ def listener_node():
     rospy.Subscriber('/turtle1/pose', Pose, callback)
     def on_press(key):
         global twist
-        try:
-            if key.char == 'w':
-                twist.linear.x = 2
-            elif key.char == 'a':
-                twist.linear.x=0
-                twist.angular.z= 2
-            elif key.char == 's':
-                twist.angular.z=0
-                twist.linear.x = -2
-            elif key.char == 'd':
+        try: 
+            if 0.5 < pose.x < 10.5 and 0.5 < pose.y < 10.5:
+                if key.char == 'w':
+                    twist.linear.x = 2
+                elif key.char == 'a':
+                    twist.linear.x=0
+                    twist.angular.z= 2
+                elif key.char == 's':
+                    twist.angular.z=0
+                    twist.linear.x = -2
+                elif key.char == 'd':
+                    twist.linear.x =0
+                    twist.angular.z= -2
+                pub.publish(twist)
+            else:
                 twist.linear.x =0
-                twist.angular.z= -2
+                twist.angular.z = 0
+                pub.publish(twist)
         except AttributeError:
             pass
     def on_release(key):
         global twist
         try:
-            if key.char == 'w':
+            if key.char in ['w', 'a', 's', 'd']:
                 twist.linear.x = 0
-            elif key.char == 'a':
-                twist.linear.x=0
-                twist.angular.z=0
-            elif key.char == 's':
-                twist.angular.z=0
-                twist.linear.x = 0
-            elif key.char == 'd':
-                twist.linear.x =0
-                twist.angular.z= 0
+                twist.angular.z = 0
+                pub.publish(twist)
         except AttributeError:
             pass    
     try:
-        with Listener(on_press=on_press, on_release=on_release) as listener:
-            listener.join()
+        listener = Listener(on_press=on_press, on_release=on_release)
     except KeyboardInterrupt:
         pass
-    while not rospy.is_shutdown():
-        if pose.x > 0.5 and pose.x < 10.5 and pose.y > 0.5 and pose.y < 10.5:
-            pub.publish(twist)
-        else:
-            twist.angular.z=0
-            twist.linear.x=0
-            pub.publish(twist)
-        rate.sleep()
+    
     
 
 if __name__== "__main__":
