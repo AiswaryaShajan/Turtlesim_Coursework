@@ -36,9 +36,22 @@ def listener_node():
                     twist.angular.z= -2
                 pub.publish(twist)
             else:
-                twist.linear.x =0
-                twist.angular.z = 0
+                previous_linear = twist.linear.x
+                if key.char in ['w', 'a','s', 'd']:
+                    print('Freeze! This place is off-limits. You can rotate or go back.')
+                twist.linear.x = 0
+                start_time=rospy.get_time()
                 pub.publish(twist)
+                if (rospy.get_time()-start_time < 0.785):
+                    twist.angular.z= 2
+                    twist.linear.z = -previous_linear
+                    pub.publish(twist)
+                if key.char == 'a':
+                    twist.angular.z= 2
+                elif key.char == 'd':
+                    twist.angular.z= -2
+                pub.publish(twist)
+
         except AttributeError:
             pass
     def on_release(key):
