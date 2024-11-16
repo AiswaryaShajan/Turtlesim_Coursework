@@ -3,23 +3,28 @@ import rospy
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
 from pynput.keyboard import Key, Listener, KeyCode
+twist = Twist() # Declaring the global variables so that they can be accessed in any of the functions.
+pose= Pose()
 
 def listener_node():
-    twist = Twist()
-    pose=Pose()
     rospy.init_node('listener_node', anonymous=True)
     rate=rospy.Rate(10)
     pub = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
-    def callback(data):
+    def callback(data): # data is a local variable. it can only be used inside the callback function.
         global pose
-        pose=data
+        pose=data   #it has to be stored somewhere so that it can be accessed outside the callback.
+        print(f'pose undated: {pose}')
     rospy.Subscriber('/turtle1/pose', Pose, callback)
     def on_press(key):
         global twist
+        global pose
         try: 
-            if 0.5 < pose.x < 10.5 and 0.5 < pose.y < 10.5:
+            print('try block is seen')
+            if 1.5 < pose.x < 10 and 1.5 < pose.y < 10:
+                print('turtle is within the bounds')
                 if key.char == 'w':
                     twist.linear.x = 2
+                    print('w pressed')
                 elif key.char == 'a':
                     twist.linear.x=0
                     twist.angular.z= 2
@@ -38,6 +43,7 @@ def listener_node():
             pass
     def on_release(key):
         global twist
+        global pose
         try:
             if key.char in ['w', 'a', 's', 'd']:
                 twist.linear.x = 0
@@ -48,6 +54,7 @@ def listener_node():
     try:
         listener = Listener(on_press=on_press, on_release=on_release)
         listener.start()
+        print('Listener started.') #Check if listener is working.
     except KeyboardInterrupt:
         pass
     
