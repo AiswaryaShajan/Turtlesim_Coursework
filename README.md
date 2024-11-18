@@ -10,6 +10,11 @@ This repository hosts the source code for the `turtlesim_coursework` package, wh
 ## Prerequisites:
 1. ROS installed and configured.
 2. Python 3 with `rospy`, `geometry_msgs`,`math`, and `pynput` libraries installed.
+3. Start the ROS master (run `roscore`).
+4. Run the turtlesim_node in a new terminal:
+   ```bash
+   rosrun turtlesim turtlesim_node
+5. Once the roscore and turtlesim is set up, the python file associated with a task can be run on another terminal.
 
 ## TASK 1: Teleoperation with Adjustable Speed
 
@@ -68,14 +73,10 @@ The `RQT` graph is shown below.
 ## Running the Project
 
 ### Steps to Run:
-1. Start the ROS master (run `roscore`).
-2. Run the turtlesim_node in a new terminal:
-   ```bash
-   rosrun turtlesim turtlesim_node
-3. Run the teleoperation node in a new terminal:
+1. Run the teleoperation node in a new terminal:
    ```bash
    rosrun turtlesim_coursework teleop_with_speed.py
-3. Follow the on-screen instructions in the terminal to control the turtle. Press `esc` to quit.
+2. Follow the on-screen instructions in the terminal to control the turtle. Press `esc` to quit.
 
 ## Future Debugging
 On pressing the Esc key, random terminal commands may appear, even though the node stops successfully.
@@ -140,14 +141,88 @@ The `RQT` graph displays the main components:
 
 ## Running the Project
 
-1. Start the ROS master (run `roscore`).
-2. Run the turtlesim_node in a new terminal:
-   ```bash
-   rosrun turtlesim turtlesim_node
-3. Run the navigation node in a new terminal:
+1. Run the navigation node in a new terminal:
    ```bash
    rosrun turtlesim_coursework navigate_to_coordinate.py
-4. Follow the instructions on the terminal.
+2. Follow the instructions on the terminal.
 
 ## Future Debugging
 For some coordinates, the turtle is not able to instantaneously stop and it continues to move. Yet to debug this issue. Let me know if you can help!
+
+## TASK 3: Avoiding a wall collision
+
+**Aim**: To move the turtle within the Turtlesim Window without colliding with the actual boundary of the Turtlesim window.
+
+![Wall_collision_gif](wall_org.gif)
+
+### Design
+
+The program mainly consists of a custom node that acts as listener, subscriber and a publisher at the same time, where:
+
+1. **Listener - Captures the Key Presses**:
+   - To move the turtle within the window, the keys `w`, `a`, `s` and `d` are used.
+2. **Subscriber Node - Updated Pose**
+   - The callback function is called every time a new pose is updated to the listener so that the boundary check is also updated. 
+2. **Publisher Node - Turtle Movement**:
+   - The ROS node continuously publishes velocity values from the listener to the `/turtle1/cmd_vel` topic, controlling the turtle's movement.
+
+### Algorithm
+
+1. **Initialize ROS Node**  
+   - Create a ROS node called `listener_node`.
+   - Set up publishers and subscribers for Turtlesim topics.
+
+2. **Keyboard Listener**  
+   - Use the `pynput` library to capture key presses:
+     - `w` - Move forward.
+     - `s` - Move backward.
+     - `a` - Rotate left.
+     - `d` - Rotate right.
+
+3. **Pose Updates**  
+   - THe same node continuously subscribe to `/turtle1/pose` topic to get the turtle's position.
+
+4. **Boundary Check**  
+   - If the turtle’s position exceeds boundaries i.e 1.6 < x <9.4 and 1.6< y <9.4, 
+     - Stop linear motion.
+     - Allow only corrective motion (e.g., `w` or `s` to re-enter bounds). This is checked using the key that was last pressed. 
+     
+
+5. **Publish Commands**  
+   - Publish `Twist` messages to `/turtle1/cmd_vel` to move the turtle.
+
+6. **Stop Movement on Key Release**  
+   - Reset velocities when the key is released.
+
+### Architecture
+
+The `RQT` graph is shown below.
+![RQT Graph](images/wall_avoidance.png)
+
+- **Node**: `wall_avoidance` - capture key presses, update pose, publish velocity commands.
+- **Topic**: 
+   - `/turtle1/cmd_vel` (published by wall_avoidance node)
+   - `/turtle1/pose` (subscribed by wall_avoidance node)
+-**Key Functions**:
+- **`on_press(key)`**: Handles key presses for direction and speed control.
+- **`on_release(key)`**: Stops the turtle when keys are released.
+- **`wall_avoidance()`**: Initializes the ROS node, callback function for subscriber keyboard listener, and publishing loop. It is then called in the 'main' block.
+- **Global Variables**:
+- `pose`
+- `twist`
+- `last-pressed key`
+
+### Flow of Information
+
+-User presses key→ key captured by listener → Boundary check → if within bounds execute regular teleoperation with key 'w', 'a', 's', and 'd'. When turtle hits boundary, it is rotated back in enabling only 'w' and 's' key based on last pressed logic → once back in checks for boundary again..and so on.
+
+
+## Running the Project
+
+### Steps to Run:
+1. Run the listener_node in a new terminal besides the `roscore` and `turtlesim_node`:
+   ```bash
+   rosrun turtlesim_coursework wall_avoidance.py
+2. Follow the on-screen instructions in the terminal to move the turtle.
+
+
