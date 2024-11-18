@@ -7,8 +7,8 @@ twist = Twist() # Declaring the global variables so that they can be accessed in
 pose= Pose()
 last_pressed_key = None
 
-def listener_node():
-    rospy.init_node('listener_node', anonymous=True)
+def wall_avoidance():
+    rospy.init_node('wall_avoidance', anonymous=True)
     rate=rospy.Rate(10)
     pub = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
     def callback(data): # data is a local variable. it can only be used inside the callback function.
@@ -73,9 +73,11 @@ def listener_node():
     
     while not rospy.is_shutdown():
         rate.sleep()
+    else:
+        listener.stop()
 
 if __name__== "__main__":
     try:
-        listener_node()
+        wall_avoidance()
     except rospy.ROSInterruptException:
         pass
