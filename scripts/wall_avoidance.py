@@ -1,4 +1,5 @@
-#!/usr/bin/env python3 #SIMPLE CODE
+#!/usr/bin/env python3 
+#SIMPLE CODE
 import rospy
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
@@ -21,7 +22,8 @@ def listener_node():
         global in_bound
         try:
             if 1.5 < pose.x < 9.5 and 1.5< pose.y < 9.5:
-
+                twist.angular.z = 0 # reset so that the turtle doesnt end up rotating at the boundary.
+                pub.publish(twist)
                 print('turtle is within the bounds')
                 if key.char == 'w':
                     twist.linear.x = 2
